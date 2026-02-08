@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clash Royale Сундук</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a0f2b 0%, #2b0b4f 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Arial', sans-serif;
+            padding: 20px;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #ffd700;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            font-size: 2.5rem;
+        }
+
+        .subtitle {
+            color: #f3c95c;
+            margin-bottom: 40px;
+            font-size: 1.2rem;
+        }
+
+        /* Контейнер для изображения сундука */
+        .chest-container {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            margin: 0 auto 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Изображение сундука из Clash Royale */
+        .chest-image {
+            width: 350px;
+            height: 350px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));
+            animation: chestFloat 3s ease-in-out infinite;
+            position: relative;
+            z-index: 5;
+        }
+
+        @keyframes chestFloat {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-15px) scale(1.03); }
+        }
+
+        /* Анимация клика */
+        .chest-image.clicked {
+            animation: chestClick 0.3s ease;
+        }
+
+        @keyframes chestClick {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+
+        /* Анимация открытия сундука */
+        .chest-image.opening {
+            animation: chestOpen 1s ease forwards;
+        }
+
+        @keyframes chestOpen {
+            0% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.1) rotate(-5deg); }
+            50% { transform: scale(1.05) rotate(5deg); }
+            75% { transform: scale(1.1) rotate(-3deg); }
+            100% { transform: scale(0.8) rotate(0deg); opacity: 0.5; }
+        }
+
+        /* Индикатор прогресса под сундуком */
+        .progress-container {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-label {
+            color: #f3c95c;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .progress-dots {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+        }
+
+        .progress-dot {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 3px solid #ffd700;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-dot::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(145deg, #ffd700, #ffb700);
+            border-radius: 50%;
+            transform: scale(0);
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .progress-dot.active::before {
+            transform: scale(0.9);
+        }
+
+        .progress-dot.active {
+            box-shadow: 
+                0 0 25px rgba(255, 215, 0, 0.9),
+                inset 0 0 15px rgba(255, 255, 255, 0.4);
+            border-color: #ffb700;
+        }
+
+        /* Фото поверх сундука - УВЕЛИЧЕННЫЕ */
+        .photo-overlay {
+            position: absolute;
+            width: 300px; /* Увеличил размер */
+            height: 420px; /* Увеличил размер */
+            border-radius: 20px;
+            border: 10px solid #ffd700;
+            overflow: hidden;
+            box-shadow: 
+                0 0 50px rgba(255, 215, 0, 0.8),
+                0 25px 60px rgba(63, 2, 83, 0.6);
+            opacity: 0;
+            transform: scale(0) rotateY(180deg);
+            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 10;
+            cursor: pointer;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0) rotateY(180deg);
+            background: rgba(55, 6, 73, 0.9);
+        }
+
+        .photo-overlay.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1) rotateY(0deg);
+        }
+
+        .photo-overlay img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Показываем фото полностью */
+            padding: 10px;
+        }
+
+        .overlay-number {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle at 30% 30%, #ffd90000, #ffb70000);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 24px;
+            color: #9d9d9d00;
+            border: 4px solid rgba(255, 255, 255, 0);
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.7);
+            z-index: 11;
+        }
+
+        /* Контейнер для фотографий внизу */
+        .photos-container {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 50px;
+            opacity: 0;
+            transform: translateY(60px) scale(0.8);
+            transition: all 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .photos-container.show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* Карточки с фотографиями в стиле Clash Royale */
+        .clash-card {
+            width: 250px;
+            height: 350px;
+            background: linear-gradient(145deg, 
+                rgba(138, 43, 226, 0.9) 0%,
+                rgba(106, 13, 173, 0.9) 50%,
+                rgba(59, 15, 122, 0.9) 100%);
+            border-radius: 20px;
+            border: 8px solid #ffd700;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.6),
+                0 0 30px rgba(255, 215, 0, 0.3);
+            opacity: 0;
+            transform: scale(0) rotateY(180deg);
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .photos-container.show .clash-card {
+            opacity: 1;
+            transform: scale(1) rotateY(0deg);
+        }
+
+        .photos-container.show .clash-card:nth-child(1) { transition-delay: 0.2s; }
+        .photos-container.show .clash-card:nth-child(2) { transition-delay: 0.4s; }
+        .photos-container.show .clash-card:nth-child(3) { transition-delay: 0.6s; }
+        .photos-container.show .clash-card:nth-child(4) { transition-delay: 0.8s; }
+
+        .clash-card:hover {
+            transform: scale(1.08) rotateY(5deg) translateY(-15px);
+            box-shadow: 
+                0 30px 50px rgba(0, 0, 0, 0.7),
+                0 0 40px rgba(255, 215, 0, 0.5);
+            z-index: 2;
+        }
+
+        .clash-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s;
+        }
+
+        .clash-card:hover img {
+            transform: scale(1.1);
+        }
+
+        /* Номер карточки в стиле Clash Royale */
+        .card-number {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle at 30% 30%, #ffd700, #ffb700);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 20px;
+            color: #6a0dad;
+            border: 3px solid white;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            z-index: 3;
+        }
+
+        /* Эффекты частиц */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #ffd700;
+            border-radius: 50%;
+            opacity: 0;
+        }
+
+        /* Эффект удара */
+        .hit-effect {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(circle, 
+                rgba(255, 215, 0, 0.9) 0%, 
+                rgba(255, 215, 0, 0.3) 50%,
+                rgba(255, 215, 0, 0) 70%);
+            pointer-events: none;
+            opacity: 0;
+            z-index: 20;
+        }
+
+        /* Кнопка сброса в стиле игры */
+        .clash-button {
+            padding: 15px 35px;
+            background: linear-gradient(145deg, 
+                #bc57c5 0%, 
+                #d74ab1 50%, 
+                #e365bf 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 40px;
+            font-size: 1.2rem;
+            font-weight: 900;
+            transition: all 0.3s;
+            border: 4px solid #ffd700;
+            box-shadow: 
+                0 10px 20px rgba(0, 0, 0, 0.3),
+                0 0 15px rgba(255, 107, 107, 0.4);
+            letter-spacing: 1px;
+        }
+
+        .clash-button:hover {
+            transform: scale(1.08);
+            box-shadow: 
+                0 15px 30px rgba(0, 0, 0, 0.4),
+                0 0 25px rgba(255, 107, 107, 0.6);
+        }
+
+        /* Инструкция для пользователя */
+        .instruction {
+            color: #f3c95c;
+            font-size: 1rem;
+            margin-top: 20px;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+            min-height: 24px;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 1100px) {
+            .photos-container {
+                flex-wrap: wrap;
+            }
+            
+            .clash-card {
+                width: 220px;
+                height: 310px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .chest-container {
+                width: 400px;
+                height: 400px;
+            }
+            
+            .chest-image {
+                width: 320px;
+                height: 320px;
+            }
+            
+            .photo-overlay {
+                width: 340px;
+                height: 340px;
+            }
+            
+            .overlay-number {
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+            }
+            
+            .progress-dots {
+                gap: 20px;
+            }
+            
+            .progress-dot {
+                width: 35px;
+                height: 35px;
+            }
+            
+            .clash-card {
+                width: 180px;
+                height: 250px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chest-container {
+                width: 320px;
+                height: 320px;
+            }
+            
+            .chest-image {
+                width: 260px;
+                height: 260px;
+            }
+            
+            .photo-overlay {
+                width: 280px;
+                height: 280px;
+            }
+            
+            .progress-dots {
+                gap: 15px;
+            }
+            
+            .progress-dot {
+                width: 30px;
+                height: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <div class="container">
+        <h1>🎯 CLASH ROYALE СУНДУК</h1>
+        <div class="subtitle">Нажмите на сундук 4 раза чтобы открыть</div>
+        
+        <div class="chest-container">
+            <!-- Изображение сундука из Clash Royale -->
+            <img src="https://i.imgur.com/7Q8jZ9Y.png" alt="Сундук Clash Royale" class="chest-image" id="chestImage">
+            
+            <!-- Контейнер для фото поверх сундука -->
+            <div id="photoOverlay"></div>
+            
+            <!-- Индикатор прогресса -->
+            <div class="progress-container">
+                <div class="progress-label">Прогресс:</div>
+                <div class="progress-dots" id="progressDots">
+                    <!-- Точки будут созданы через JavaScript -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="instruction" id="instruction">
+            Нажмите на сундук чтобы получить фотографии
+        </div>
+        
+        <div class="photos-container" id="photosContainer">
+            <!-- Карточки появятся здесь -->
+        </div>
+        
+        <button class="clash-button" id="resetBtn">
+            🔄 ОТКРЫТЬ ЕЩЕ РАЗ
+        </button>
+    </div>
+
+    <script>
+        const chestImage = document.getElementById('chestImage');
+        const photosContainer = document.getElementById('photosContainer');
+        const progressDotsContainer = document.getElementById('progressDots');
+        const photoOverlayContainer = document.getElementById('photoOverlay');
+        const instruction = document.getElementById('instruction');
+        const resetBtn = document.getElementById('resetBtn');
+        const particles = document.getElementById('particles');
+
+        let clickCount = 0;
+        const maxClicks = 4;
+        let isOpening = false;
+        let isOpened = false;
+        let currentPhotoIndex = -1;
+        let overlayPhoto = null;
+
+        // Пути к фотографиям (ваши фото)
+        const photoPaths = [
+            'images/1.png',
+            'images/2.jpeg',
+            'images/3.png',
+            'images/4.png'
+        ];
+
+        // Альтернативное изображение сундука
+        const chestImageUrls = [
+            'images/sticker.png',
+        ];
+
+        // Запасные фото на случай ошибок
+        const fallbackPhotos = [
+            'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=500&h=700&fit=crop',
+            'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=500&h=700&fit=crop',
+            'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=500&h=700&fit=crop',
+            'https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?w=500&h=700&fit=crop'
+        ];
+
+        // Создание точек прогресса
+        function createProgressDots() {
+            progressDotsContainer.innerHTML = '';
+            
+            for (let i = 0; i < maxClicks; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'progress-dot';
+                dot.dataset.index = i;
+                
+                progressDotsContainer.appendChild(dot);
+            }
+        }
+
+        // Загрузка изображения сундука
+        function loadChestImage() {
+            let currentImageIndex = 0;
+            
+            function tryNextImage() {
+                if (currentImageIndex < chestImageUrls.length) {
+                    const img = new Image();
+                    img.onload = function() {
+                        chestImage.src = this.src;
+                    };
+                    img.onerror = function() {
+                        currentImageIndex++;
+                        tryNextImage();
+                    };
+                    img.src = chestImageUrls[currentImageIndex];
+                }
+            }
+            
+            tryNextImage();
+        }
+
+        // Создание частиц
+        function createParticles(count, x, y) {
+            for (let i = 0; i < count; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 20 + Math.random() * 80;
+                const particleX = x + Math.cos(angle) * distance;
+                const particleY = y + Math.sin(angle) * distance;
+                
+                particle.style.left = particleX + 'px';
+                particle.style.top = particleY + 'px';
+                
+                const colors = ['#ffd700', '#ffb700', '#ff9500', '#8a2be2'];
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                
+                particles.appendChild(particle);
+                
+                const duration = 600 + Math.random() * 600;
+                particle.animate([
+                    { opacity: 1, transform: 'translate(0, 0) scale(1)' },
+                    { 
+                        opacity: 0, 
+                        transform: `translate(${Math.cos(angle) * 150}px, ${Math.sin(angle) * 150}px) scale(0)`
+                    }
+                ], {
+                    duration: duration,
+                    easing: 'ease-out'
+                });
+                
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                }, duration);
+            }
+        }
+
+        // Эффект удара
+        function createHitEffect(x, y) {
+            const effect = document.createElement('div');
+            effect.className = 'hit-effect';
+            effect.style.left = (x - 50) + 'px';
+            effect.style.top = (y - 50) + 'px';
+            
+            document.body.appendChild(effect);
+            
+            effect.animate([
+                { opacity: 1, transform: 'scale(0)' },
+                { opacity: 0.7, transform: 'scale(1.5)' },
+                { opacity: 0, transform: 'scale(2.5)' }
+            ], {
+                duration: 600,
+                easing: 'ease-out'
+            });
+            
+            setTimeout(() => {
+                if (effect.parentNode) {
+                    effect.parentNode.removeChild(effect);
+                }
+            }, 600);
+        }
+
+        // Обновление точек прогресса
+        function updateProgressDots() {
+            const dots = progressDotsContainer.querySelectorAll('.progress-dot');
+            
+            dots.forEach((dot, index) => {
+                if (index < clickCount) {
+                    dot.classList.add('active');
+                    // Анимация заполнения точки
+                    dot.animate([
+                        { transform: 'scale(1)' },
+                        { transform: 'scale(1.3)' },
+                        { transform: 'scale(1)' }
+                    ], {
+                        duration: 300,
+                        easing: 'ease-out'
+                    });
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+
+        // Показать фото поверх сундука
+        function showPhotoOverlay(index) {
+            // Очищаем контейнер
+            photoOverlayContainer.innerHTML = '';
+            
+            // Создаем новое фото
+            overlayPhoto = document.createElement('div');
+            overlayPhoto.className = 'photo-overlay';
+            overlayPhoto.dataset.index = index;
+            
+            const number = document.createElement('div');
+            number.className = 'overlay-number';
+            number.textContent = index + 1;
+            
+            const img = document.createElement('img');
+            img.src = photoPaths[index];
+            img.alt = `Фото ${index + 1}`;
+            img.loading = 'lazy';
+            
+            // Обработчик ошибки загрузки
+            img.onerror = function() {
+                console.log(`Не удалось загрузить: ${photoPaths[index]}. Используем запасное фото.`);
+                this.src = fallbackPhotos[index];
+            };
+            
+            overlayPhoto.appendChild(number);
+            overlayPhoto.appendChild(img);
+            photoOverlayContainer.appendChild(overlayPhoto);
+            
+            // Анимация появления
+            setTimeout(() => {
+                overlayPhoto.classList.add('show');
+            }, 50);
+            
+            // Обработчик клика для переключения на следующее фото
+            overlayPhoto.addEventListener('click', () => {
+                if (index < photoPaths.length - 1) {
+                    // Показываем следующее фото
+                    currentPhotoIndex = index + 1;
+                    showPhotoOverlay(currentPhotoIndex);
+                    
+                    // Обновляем инструкцию
+                    if (currentPhotoIndex === photoPaths.length - 1) {
+                        instruction.textContent = "Нажмите на фото чтобы увидеть все фотографии";
+                    } else {
+                        instruction.textContent = `Нажмите на фото чтобы увидеть следующее (${currentPhotoIndex + 2}/4)`;
+                    }
+                    
+                    // Эффекты при переключении
+                    createParticles(20, window.innerWidth / 2, window.innerHeight / 2);
+                } else {
+                    // Последнее фото - показываем все фотографии внизу
+                    showAllPhotos();
+                }
+            });
+            
+            // Обновляем инструкцию
+            if (index === photoPaths.length - 1) {
+                instruction.textContent = "Нажмите на фото чтобы увидеть все фотографии";
+            } else {
+                instruction.textContent = `Нажмите на фото чтобы увидеть следующее (${index + 2}/4)`;
+            }
+        }
+
+        // Показать все фотографии внизу
+        function showAllPhotos() {
+            // Удаляем фото поверх сундука
+            if (overlayPhoto) {
+                overlayPhoto.classList.remove('show');
+                setTimeout(() => {
+                    photoOverlayContainer.innerHTML = '';
+                    overlayPhoto = null;
+                }, 800);
+            }
+            
+            // Показываем все фотографии внизу
+            setTimeout(() => {
+                photosContainer.classList.add('show');
+                instruction.textContent = "Все фотографии открыты!";
+                
+                // Больше частиц
+                setTimeout(() => {
+                    createParticles(30, window.innerWidth / 2, window.innerHeight / 2);
+                }, 500);
+            }, 500);
+        }
+
+        // Создание карточек с фотографиями
+        function createPhotoCards() {
+            photosContainer.innerHTML = '';
+            
+            photoPaths.forEach((path, index) => {
+                const card = document.createElement('div');
+                card.className = 'clash-card';
+                
+                const number = document.createElement('div');
+                number.className = 'card-number';
+                number.textContent = index + 1;
+                
+                const img = document.createElement('img');
+                img.src = path;
+                img.alt = `Награда ${index + 1}`;
+                img.loading = 'lazy';
+                
+                img.onerror = function() {
+                    console.log(`Не удалось загрузить: ${path}. Используем запасное фото.`);
+                    this.src = fallbackPhotos[index];
+                };
+                
+                card.appendChild(number);
+                card.appendChild(img);
+                
+                card.addEventListener('click', () => {
+                    openFullscreenImage(img.src);
+                });
+                
+                photosContainer.appendChild(card);
+            });
+        }
+
+        // Полноэкранный просмотр
+        function openFullscreenImage(src) {
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.95);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 1000;
+                cursor: pointer;
+            `;
+            
+            const img = document.createElement('img');
+            img.src = src;
+            img.style.cssText = `
+                max-width: 90%;
+                max-height: 90%;
+                object-fit: contain;
+                border-radius: 15px;
+                border: 8px solid #ffd700;
+                box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+            `;
+            
+            overlay.appendChild(img);
+            document.body.appendChild(overlay);
+            
+            overlay.addEventListener('click', () => {
+                document.body.removeChild(overlay);
+            });
+            
+            document.addEventListener('keydown', function closeOnEscape(e) {
+                if (e.key === 'Escape') {
+                    document.body.removeChild(overlay);
+                    document.removeEventListener('keydown', closeOnEscape);
+                }
+            });
+        }
+
+        // Обработчик клика по сундуку
+        chestImage.addEventListener('click', (e) => {
+            if (isOpening || isOpened) return;
+            
+            clickCount++;
+            
+            // Обновляем точки прогресса
+            updateProgressDots();
+            
+            // Эффект нажатия
+            chestImage.classList.remove('clicked');
+            void chestImage.offsetWidth;
+            chestImage.classList.add('clicked');
+            
+            // Создаем эффекты
+            createHitEffect(e.clientX, e.clientY);
+            createParticles(15, e.clientX, e.clientY);
+            
+            // Специальные эффекты при последнем клике
+            if (clickCount === maxClicks - 1) {
+                createParticles(30, e.clientX, e.clientY);
+                instruction.textContent = "Еще один клик!";
+            }
+            
+            // Открытие сундука
+            if (clickCount >= maxClicks) {
+                openChest();
+            }
+        });
+
+        // Открытие сундука
+        function openChest() {
+            isOpening = true;
+            isOpened = true;
+            
+            // Анимация открытия сундука
+            chestImage.classList.add('opening');
+            
+            // Все точки становятся активными
+            const dots = progressDotsContainer.querySelectorAll('.progress-dot');
+            dots.forEach(dot => dot.classList.add('active'));
+            
+            // Больше частиц при открытии
+            setTimeout(() => {
+                createParticles(50, window.innerWidth / 2, window.innerHeight / 2);
+            }, 300);
+            
+            // Показываем первое фото поверх сундука
+            setTimeout(() => {
+                currentPhotoIndex = 0;
+                showPhotoOverlay(currentPhotoIndex);
+                instruction.textContent = "Нажмите на фото чтобы увидеть следующее (2/4)";
+            }, 800);
+        }
+
+        // Сброс
+        function resetAnimation() {
+            clickCount = 0;
+            currentPhotoIndex = -1;
+            
+            // Удаляем фото поверх сундука
+            photoOverlayContainer.innerHTML = '';
+            overlayPhoto = null;
+            
+            // Сбрасываем сундук
+            chestImage.classList.remove('opening');
+            photosContainer.classList.remove('show');
+            isOpening = false;
+            isOpened = false;
+            
+            // Сбрасываем точки прогресса
+            updateProgressDots();
+            
+            // Сбрасываем инструкцию
+            instruction.textContent = "Нажмите на сундук чтобы получить фотографии";
+            
+            // Эффект сброса
+            chestImage.animate([
+                { transform: 'scale(1)', opacity: 1 },
+                { transform: 'scale(1.1)', opacity: 0.7 },
+                { transform: 'scale(1)', opacity: 1 }
+            ], {
+                duration: 500,
+                easing: 'ease-out'
+            });
+            
+            // Частицы при сбросе
+            createParticles(20, window.innerWidth / 2, window.innerHeight / 2);
+        }
+
+        // Инициализация
+        createProgressDots();
+        loadChestImage();
+        resetBtn.addEventListener('click', resetAnimation);
+        createPhotoCards();
+        updateProgressDots();
+
+        // Автогенерация фоновых частиц
+        setInterval(() => {
+            const x = Math.random() * window.innerWidth;
+            const y = Math.random() * window.innerHeight;
+            createParticles(1, x, y);
+        }, 300);
+    </script>
+</body>
+</html>
